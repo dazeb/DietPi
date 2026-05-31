@@ -9,17 +9,17 @@
 # Build deps
 G_AGUP
 G_AGDUG automake pkg-config make g++ libpopt-dev libconfig-dev libssl-dev libsoxr-dev libavahi-client-dev libasound2-dev libglib2.0-dev libmosquitto-dev avahi-daemon git libplist-dev libsodium-dev libgcrypt20-dev libavformat-dev xxd
-adeps=('libc6' 'libasound2' 'libssl3' 'libavahi-client3' 'libsoxr0' 'libpopt0' 'libglib2.0-0' 'libmosquitto1' 'avahi-daemon')
-adeps2=('libsodium23' 'libgcrypt20')
+adeps=('libc6' 'libavahi-client3' 'libsoxr0' 'libpopt0' 'libmosquitto1' 'avahi-daemon')
+adeps2=('libgcrypt20')
 case $G_DISTRO in
-	7) adeps+=('libconfig9'); adeps2+=('libavcodec59' 'libplist3');;
-	8|9) adeps+=('libconfig11'); adeps2+=('libavcodec61' 'libplist-2.0-4');;
+	7) adeps+=('libasound2' 'libssl3' 'libconfig9' 'libglib2.0-0'); adeps2+=('libsodium23' 'libavcodec59' 'libplist3');;
+	8) adeps+=('libasound2t64' 'libssl3t64' 'libconfig11' 'libglib2.0-0t64'); adeps2+=('libsodium23' 'libavcodec61' 'libplist-2.0-4');;
+	9) adeps+=('libasound2t64' 'libssl3t64' 'libconfig11' 'libglib2.0-0t64'); adeps2+=('libsodium26' 'libavcodec62' 'libplist-2.0-4');;
 	*) G_DIETPI-NOTIFY 1 "Unsupported distro version: $G_DISTRO_NAME (ID=$G_DISTRO)"; exit 1;;
 esac
 for i in "${adeps[@]}" "${adeps2[@]}"
 do
-	# Temporarily allow lib*t64 packages, while the 64-bit time_t transition is ongoing on Trixie: https://bugs.debian.org/1065394
-	dpkg-query -s "$i" &> /dev/null || dpkg-query -s "${i}t64" &> /dev/null && continue
+	dpkg-query -s "$i" 2> /dev/null | grep -q '^Status: install ok installed$' && continue
 	G_DIETPI-NOTIFY 1 "Expected dependency package was not installed: $i"
 	exit 1
 done
@@ -43,7 +43,7 @@ G_EXEC rm "$version.tar.gz"
 G_DIETPI-NOTIFY 2 "Compiling $PRETTY"
 G_EXEC cd "$NAME-$version"
 G_EXEC_OUTPUT=1 G_EXEC autoreconf -fiW all
-CFLAGS='-g0 -O3' CXXFLAGS='-g0 -O3' G_EXEC_OUTPUT=1 G_EXEC ./configure --with-alsa --with-avahi --with-ssl=openssl --with-soxr --with-metadata --with-systemd --with-dbus-interface --with-mpris-interface --with-mqtt-client --with-pipe --with-stdout
+CFLAGS='-g0 -O3' CXXFLAGS='-g0 -O3' G_EXEC_OUTPUT=1 G_EXEC ./configure --with-alsa --with-avahi --with-ssl=openssl --with-soxr --with-metadata --with-systemd-startup --with-dbus-interface --with-mpris-interface --with-mqtt-client --with-pipe --with-stdout
 G_EXEC_OUTPUT=1 G_EXEC make
 G_EXEC strip --remove-section=.comment --remove-section=.note "$NAME"
 
@@ -63,7 +63,7 @@ G_EXEC cp -a "$NAME-$version/$NAME" "$DIR/usr/local/bin/"
 G_EXEC cp "$NAME-$version/LICENSES" "$DIR/usr/local/share/doc/$NAME/copyright"
 
 # systemd service
-G_EXEC cp "$NAME-$version/scripts/$NAME.service-avahi" "$DIR/lib/systemd/system/$NAME.service"
+G_EXEC cp "$NAME-$version/scripts/$NAME.service" "$DIR/lib/systemd/system/"
 
 # dbus/mpris permissions
 G_EXEC cp "$NAME-$version/scripts/shairport-sync-dbus-policy.conf" "$DIR/etc/dbus-1/system.d/"
@@ -297,6 +297,7 @@ then
 	if getent passwd $NAME > /dev/null
 	then
 		echo 'Configuring $PRETTY service user "$NAME" ...'
+		[ ~$NAME = '/nonexistent' ] || systemctl stop $NAME
 		usermod -aG audio -d /nonexistent -s /usr/sbin/nologin $NAME
 	else
 		echo 'Creating $PRETTY service user "$NAME" ...'
@@ -355,8 +356,6 @@ find "$DIR" ! \( -path "$DIR/DEBIAN" -prune \) -type f -exec md5sum {} + | sed "
 DEPS_APT_VERSIONED=
 for i in "${adeps[@]}"
 do
-	# Temporarily allow lib*t64 packages, while the 64-bit time_t transition is ongoing on Trixie: https://bugs.debian.org/1065394
-	dpkg-query -s "$i" &> /dev/null || i+='t64'
 	DEPS_APT_VERSIONED+=" $i (>= $(dpkg-query -Wf '${VERSION}' "$i")),"
 done
 DEPS_APT_VERSIONED=${DEPS_APT_VERSIONED%,}
@@ -416,7 +415,7 @@ G_EXEC strip --remove-section=.comment --remove-section=.note nqptp
 G_EXEC cd "../$NAME-$version"
 G_EXEC_OUTPUT=1 G_EXEC make clean
 G_EXEC_OUTPUT=1 G_EXEC autoreconf -fiW all
-CFLAGS='-g0 -O3' CXXFLAGS='-g0 -O3' G_EXEC_OUTPUT=1 G_EXEC ./configure --with-alsa --with-avahi --with-ssl=openssl --with-soxr --with-metadata --with-systemd --with-dbus-interface --with-mpris-interface --with-mqtt-client --with-pipe --with-stdout --with-airplay-2
+CFLAGS='-g0 -O3' CXXFLAGS='-g0 -O3' G_EXEC_OUTPUT=1 G_EXEC ./configure --with-alsa --with-avahi --with-ssl=openssl --with-soxr --with-metadata --with-systemd-startup --with-dbus-interface --with-mpris-interface --with-mqtt-client --with-pipe --with-stdout --with-airplay-2
 G_EXEC_OUTPUT=1 G_EXEC make
 G_EXEC strip --remove-section=.comment --remove-section=.note "$NAME"
 
@@ -441,6 +440,7 @@ then
 	if getent passwd $NAME > /dev/null
 	then
 		echo 'Configuring $PRETTY service user "$NAME" ...'
+		[ ~$NAME = '/nonexistent' ] || systemctl stop $NAME
 		usermod -aG audio -d /nonexistent -s /usr/sbin/nologin $NAME
 	else
 		echo 'Creating $PRETTY service user "$NAME" ...'
@@ -450,6 +450,7 @@ then
 	if getent passwd nqptp > /dev/null
 	then
 		echo 'Configuring NQPTP service user "nqptp" ...'
+		[ ~nqptp = '/nonexistent' ] || systemctl stop nqptp
 		usermod -d /nonexistent -s /usr/sbin/nologin nqptp
 	else
 		echo 'Creating NQPTP service user "nqptp" ...'
@@ -538,8 +539,6 @@ find "$DIR" ! \( -path "$DIR/DEBIAN" -prune \) -type f -exec md5sum {} + | sed "
 # - Obtain DEB dependency versions
 for i in "${adeps2[@]}"
 do
-	# Temporarily allow lib*t64 packages, while the 64-bit time_t transition is ongoing on Trixie: https://bugs.debian.org/1065394
-	dpkg-query -s "$i" &> /dev/null || i+='t64'
 	DEPS_APT_VERSIONED+=", $i (>= $(dpkg-query -Wf '${VERSION}' "$i"))"
 done
 # shellcheck disable=SC2001
