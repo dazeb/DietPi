@@ -1,28 +1,30 @@
 #!/bin/bash
 {
 . /boot/dietpi/func/dietpi-globals
+grep -q '^ID=raspbian' /etc/os-release && G_HW_ARCH_NAME='armv6l'
 
-# -------------------------
-# ------- AirPlay 1 -------
-# -------------------------
-
-# Build deps
-G_AGUP
-G_AGDUG automake pkg-config make g++ libpopt-dev libconfig-dev libssl-dev libsoxr-dev libavahi-client-dev libasound2-dev libglib2.0-dev libmosquitto-dev avahi-daemon git libplist-dev libsodium-dev libgcrypt20-dev libavformat-dev xxd systemd-dev
+# Dependencies
+adeps_build=('automake' 'pkg-config' 'make' 'g++' 'libpopt-dev' 'libconfig-dev' 'libssl-dev' 'libsoxr-dev' 'libavahi-client-dev' 'libasound2-dev' 'libglib2.0-dev' 'libmosquitto-dev' 'avahi-daemon' 'git' 'libplist-dev' 'libsodium-dev' 'libgcrypt20-dev' 'libavformat-dev' 'xxd')
 adeps=('libc6' 'libavahi-client3' 'libsoxr0' 'libpopt0' 'libmosquitto1' 'avahi-daemon')
 adeps2=('libgcrypt20')
 case $G_DISTRO in
 	7) adeps+=('libasound2' 'libssl3' 'libconfig9' 'libglib2.0-0' 'libavcodec59'); adeps2+=('libsodium23' 'libplist3');;
-	8) adeps+=('libasound2t64' 'libssl3t64' 'libconfig11' 'libglib2.0-0t64' 'libavcodec61'); adeps2+=('libsodium23' 'libplist-2.0-4');;
-	9) adeps+=('libasound2t64' 'libssl3t64' 'libconfig11' 'libglib2.0-0t64' 'libavcodec62'); adeps2+=('libsodium26' 'libplist-2.0-4');;
+	8) adeps+=('libasound2t64' 'libssl3t64' 'libconfig11' 'libglib2.0-0t64' 'libavcodec61'); adeps2+=('libsodium23' 'libplist-2.0-4'); adeps_build+=('systemd-dev');;
+	9) adeps+=('libasound2t64' 'libssl3t64' 'libconfig11' 'libglib2.0-0t64' 'libavcodec62'); [[ $G_HW_ARCH_NAME == 'armv6l' ]] && adeps2+=('libsodium23' 'libplist-2.0-4') || adeps2+=('libsodium26' 'libplist-2.0-4'); adeps_build+=('systemd-dev');;
 	*) G_DIETPI-NOTIFY 1 "Unsupported distro version: $G_DISTRO_NAME (ID=$G_DISTRO)"; exit 1;;
 esac
+G_AGUP
+G_AGDUG "${adeps_build[@]}"
 for i in "${adeps[@]}" "${adeps2[@]}"
 do
 	dpkg-query -s "$i" 2> /dev/null | grep -q '^Status: install ok installed$' && continue
 	G_DIETPI-NOTIFY 1 "Expected dependency package was not installed: $i"
 	exit 1
 done
+
+# -------------------------
+# ------- AirPlay 1 -------
+# -------------------------
 
 # Obtain latest version
 NAME='shairport-sync'
@@ -50,7 +52,6 @@ G_EXEC strip --remove-section=.comment --remove-section=.note "$NAME"
 # Package dir: In case of Raspbian, force ARMv6
 G_DIETPI-NOTIFY 2 "Preparing $PRETTY DEB package directory"
 G_EXEC cd /tmp
-grep -q '^ID=raspbian' /etc/os-release && G_HW_ARCH_NAME='armv6l'
 DIR="${NAME}_$G_HW_ARCH_NAME"
 [[ -d $DIR ]] && G_EXEC rm -R "$DIR"
 # - Control files, systemd service, executable, configs, copyright
