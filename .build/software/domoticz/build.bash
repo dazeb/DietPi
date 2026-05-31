@@ -98,8 +98,8 @@ ExecStart=/opt/$NAME/$NAME -f /mnt/dietpi_userdata/$NAME/$NAME.conf
 
 # Hardening
 ProtectSystem=strict
-ProtectHome=true
-PrivateTmp=yes
+ProtectHome=1
+PrivateTmp=1
 ReadWritePaths=/mnt/dietpi_userdata/$NAME
 
 [Install]
