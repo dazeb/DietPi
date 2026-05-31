@@ -220,7 +220,6 @@ sessioncontrol =
 //     If the exact number of output channels is not available, a greater output channel count will be selected if available. Failing that, a lower channel count will be chosen.
 //     To avoid channel count switching, specify just one channel count in the configuration file.
 
-
 // These are parameters for the "alsa" audio back end.
 alsa =
 {
