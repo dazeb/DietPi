@@ -182,23 +182,10 @@ sessioncontrol =
 // Back End Settings
 
 // Rates, Formats and Channels
-// Shairport Sync can handle a wide range of wide range of output rates, formats and channels.
-
-// If it has been built for AirPlay 2 or with FFmpeg support, Shairport Sync can output in a wide range settings, including 48,000 and 44,100 frames per second, 32- and 24-bit sample sizes, 1 to 8 channels.
-// Otherwise, if Shairport Sync has been built (1) for classic AirPlay only and (2) without FFmpeg support, it is restricted to output rates of 44,100 frames per second or exact multiples and two channels only.
-
-// You can check Shairport Sync's support for FFmpeg by entering the command: shairport-sync -V
-// If the resulting string contains "FFmpeg" or "AirPlay2", then it has FFmpeg support built in.
-
-// With FFmpeg support:
+// Shairport Sync can handle a wide range of output rates, formats and channels, including 48,000 and 44,100 frames per second, 32- and 24-bit sample sizes, 1 to 8 channels.
 //     Possible output rates are: 5512, 8000, 11025, 16000, 22050, 32000, 44100, 48000, 64000, 88200, 96000, 176400, 192000, 352800 and 384000 frames per seconds.
 //     Possible output formats are:   "S8", "U8", "S16_LE", "S16_BE", "S24_LE", "S24_BE", "S24_3LE", "S24_3BE", "S32_LE" and "S32_BE".
 //     Possible output channel counts are: 1 to 8.
-
-// Without FFmpeg support:
-//     Possible rates are: 44100, 88200, 176400 and 352800 frames per seconds.
-//     Possible formats are:   "S8", "U8", "S16_LE", "S16_BE", "S24_LE", "S24_BE", "S24_3LE", "S24_3BE", "S32_LE" and "S32_BE".
-//     Possible channel counts are: 2.
 
 // Automatic settings
 //     Shairport Sync will dynamically select output formats, attempting to match input and output rates, formats and channel counts, picking the best alternatives otherwise.
@@ -207,7 +194,7 @@ sessioncontrol =
 // Rate Selection:
 //     Shairport Sync checks the rates the output system can accept and those that have been specified in the configuration file.
 //     From that set of possibilities, Shairport Sync will attempt to match the rate at which the audio is being received and will switch the output to that rate if necessary.
-//     If the exact rate is not available, an exact multiple will be selected if available. Finally, and only with FFmpeg support, a higher rate or a lower rate will be chosen.
+//     If the exact rate is not available, an exact multiple will be selected if available. Finally, a higher rate or a lower rate will be chosen.
 //     To avoid output rate switching, specify just one rate in the configuration file.
 
 // Format Selection:
@@ -255,7 +242,7 @@ pipe =
 {
 //	name = "/tmp/shairport-sync-audio"; // this is the default
 
-//	Note: if you specify "auto" or multiple settings here. Shairport Sync may switch between them to match the input, but there will be no notification in the pipe as changes occur. To avoid this, consider setting one just rate/format/channel count. If built with AirPlay 2 or FFmpeg support, Shairport Sync will automatically transcode and mixdown as necessary.
+//	Note: if you specify "auto" or multiple settings here. Shairport Sync may switch between them to match the input, but there will be no notification in the pipe as changes occur. To avoid this, consider setting one just rate/format/channel count. Shairport Sync will automatically transcode and mixdown as necessary.
 //	output_rate = <rate>; // Specify a single rate, e.g. 44100, or a bracketed comma-separated list of rates, e.g. (44100, 48000, 64000) or "auto" -- try to match the input. Default is 44100 for classic AirPlay, 48000 for AirPlay 2. See the "Rates, Formats and Channels" discussion above.
 //	output_format = <format>; // Specify a format, e.g. "S16_LE", or a bracketed comma-separated list of formats, e.g. ("S32_LE", "S16_LE") or "auto". Default is "S16_LE" for classic AirPlay, "S32_LE" for AirPlay 2. See the "Rates, Formats and Channels" discussion above.
 //	output_channels = 2; // Specify a specific number of channels, e.g. 2, or a bracketed comma-separated list of numbers of channels, e.g. (2, 6) or "auto" -- try to match the input. Default is 2. See the "Rates, Formats and Channels" discussion above.
@@ -264,7 +251,7 @@ pipe =
 // Parameters for the "stdout" audio back end, a back end that directs raw PCM audio output to STDOUT. No interpolation is done.
 stdout =
 {
-//	Note: if you specify "auto" or multiple settings here. Shairport Sync may switch between them to match the input, but there will be no notification in STDOUT as changes occur. To avoid this, consider setting one just rate/format/channel count. If built with AirPlay 2 or FFmpeg support, Shairport Sync will automatically transcode and mixdown as necessary.
+//	Note: if you specify "auto" or multiple settings here. Shairport Sync may switch between them to match the input, but there will be no notification in STDOUT as changes occur. To avoid this, consider setting one just rate/format/channel count. Shairport Sync will automatically transcode and mixdown as necessary.
 //	output_rate = <rate>; // Specify a single rate, e.g. 44100, or a bracketed comma-separated list of rates, e.g. (44100, 48000, 64000) or "auto" -- try to match the input. Default is 44100 for classic AirPlay, 48000 for AirPlay 2. See the "Rates, Formats and Channels" discussion above.
 //	output_format = <format>; // Specify a format, e.g. "S16_LE", or a bracketed comma-separated list of formats, e.g. ("S32_LE", "S16_LE") or "auto". Default is "S16_LE" for classic AirPlay, "S32_LE" for AirPlay 2. See the "Rates, Formats and Channels" discussion above.
 //	output_channels = 2; // Specify a specific number of channels, e.g. 2, or a bracketed comma-separated list of numbers of channels, e.g. (2, 6) or "auto" -- try to match the input. Default is 2. See the "Rates, Formats and Channels" discussion above.
