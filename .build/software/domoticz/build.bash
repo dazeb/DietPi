@@ -48,7 +48,7 @@ DIR="/tmp/${NAME}_$G_HW_ARCH_NAME"
 export CFLAGS='-g0 -O3' CXXFLAGS='-g0 -O3'
 # Workaround for missing libatomic link on ARMv6
 libatomic=()
-[[ $G_HW_ARCH_NAME == 'armv6l' ]] && libatomic=('-DCMAKE_EXE_LINKER_FLAGS=-latomic')
+[[ $G_HW_ARCH_NAME == 'armv6l' ]] && libatomic=('-DCMAKE_EXE_LINKER_FLAGS=-Wl,--push-state,--no-as-needed,-latomic,--pop-state')
 G_EXEC_OUTPUT=1 G_EXEC cmake -B ../build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="$DIR/opt/$NAME" -DDISABLE_UPDATER=1 "${libatomic[@]}"
 G_EXEC_OUTPUT=1 G_EXEC make -C ../build "-j$(nproc)"
 [[ -d $DIR ]] && G_EXEC rm -R "$DIR"
