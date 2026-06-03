@@ -2,6 +2,7 @@ v10.5
 (2026-06-13)
 
 Enhancements:
+- RustDesk Client | It has been enabled for the ARMv7 architecture after the latest release fixed package compatibility with Debian time64 transitioned packages.
 
 Bug fixes:
 - DietPI-Software | ownCloud Infinite Scale: Resolved a v10.4 regression where on fresh installs, login via intended password failed, since the command argument was falsely added. Many thanks to @tonosama for reporting this issue, and @JappeHallunken for fixing it: https://dietpi.com/forum/t/25235
