@@ -140,7 +140,7 @@ jobs:
         buildargs: ${{ fromJson(needs.prep.outputs.buildargs) }}
       fail-fast: false
     name: "Build: ${{ matrix.buildargs }}"
-    runs-on: ${{ ( contains(matrix.buildargs, '-m 20') || contains(matrix.buildargs, '-m 21') || contains(matrix.buildargs, '-a 10') ) && 'ubuntu-24.04' || 'ubuntu-24.04-arm' }}
+    runs-on: ${{ ( contains(matrix.buildargs, '-a 10') || contains(matrix.buildargs, '-m 21') || ( contains(matrix.buildargs, '-m 20') && ! contains(matrix.buildargs, '-a ') ) ) && 'ubuntu-24.04' || 'ubuntu-24.04-arm' }}
     steps:
     - name: Generate upload script
       run: |
