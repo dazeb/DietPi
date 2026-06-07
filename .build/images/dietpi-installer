@@ -452,7 +452,6 @@ _EOF_
 				fi
 			;;
 			10) G_WHIP_DEFAULT_ITEM=21 G_WHIP_MENU_ARRAY=(
-				'20' ': Virtual machine'
 				'21' ': Native PC'
 			);;
 			11) G_WHIP_DEFAULT_ITEM=81 G_WHIP_MENU_ARRAY=(
@@ -463,6 +462,7 @@ _EOF_
 		esac
 		G_WHIP_MENU_ARRAY+=(
 			'' '●─ Other '
+			'20' ': Virtual machine'
 			'75' ': Container image'
 			'22' ': Generic device'
 		)
