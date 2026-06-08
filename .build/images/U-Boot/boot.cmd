@@ -56,16 +56,7 @@ if test -n "${overlays}${user_overlays}"; then
 	for overlay in ${user_overlays}; do
 		if load "${devtype}" "${devnum}" "${scriptaddr}" "${prefix}overlay-user/${overlay}.dtbo"; then
 			echo "Applying user provided DT overlay ${overlay}.dtbo"
-			if fdt apply "${scriptaddr}"; then
-				if test -e "${devtype}" "${devnum}" "${prefix}overlay-user/${overlay}.scr"; then
-					if load "${devtype}" "${devnum}" "${scriptaddr}" "${prefix}overlay-user/${overlay}.scr"; then
-						echo "Applying user provided DT overlay fixup script ${pre}-${overlay}.scr"
-						source "${scriptaddr}" || setenv overlay_error "true"
-					fi
-				fi
-			else
-				setenv overlay_error "true"
-			fi
+			fdt apply "${scriptaddr}" || setenv overlay_error "true"
 		fi
 	done
 
