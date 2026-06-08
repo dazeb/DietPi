@@ -10673,9 +10673,9 @@ ExecStart=/mnt/dietpi_userdata/gitea/gitea web
 
 # Hardening
 ProtectSystem=full
-PrivateDevices=yes
-PrivateTmp=yes
-NoNewPrivileges=true
+PrivateDevices=1
+PrivateTmp=1
+NoNewPrivileges=1
 
 [Install]
 WantedBy=multi-user.target
@@ -10722,9 +10722,9 @@ ExecStart=/mnt/dietpi_userdata/forgejo/forgejo web
 
 # Hardening
 ProtectSystem=full
-PrivateDevices=yes
-PrivateTmp=yes
-NoNewPrivileges=true
+PrivateDevices=1
+PrivateTmp=1
+NoNewPrivileges=1
 
 [Install]
 WantedBy=multi-user.target
