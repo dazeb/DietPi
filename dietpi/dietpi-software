@@ -325,8 +325,8 @@ Available commands:
 		aSOFTWARE_DOCS[$software_id]='https://dietpi.com/docs/software/remote_desktop/#rustdesk-client'
 		aSOFTWARE_DEPS[$software_id]='6'
 		# - RISC-V & ARMv6: https://github.com/rustdesk/rustdesk/releases
-		# - ARMv7 since packages depend on non-t64 libraries
-		(( $G_HW_ARCH == 3 || $G_HW_ARCH == 10 )) || aSOFTWARE_AVAIL_G_HW_ARCH[$software_id,$G_HW_ARCH]=0
+		aSOFTWARE_AVAIL_G_HW_ARCH[$software_id,1]=0
+		aSOFTWARE_AVAIL_G_HW_ARCH[$software_id,11]=0
 
 		# Media Systems
 		#--------------------------------------------------------------------------------
@@ -2568,7 +2568,7 @@ sudo sysctl -p /etc/sysctl.d/dietpi-$1.conf"
 					'--no-piwheels'|'-P') piwheels=0;;
 					'av') (( $G_HW_ARCH < 3 || $G_HW_ARCH == 11 )) && aDEPS+=('libavdevice-dev');;
 					'bcrypt') (( ( $G_HW_ARCH == 1 && ! $piwheels ) || $G_HW_ARCH == 11 )) && rust=1;;
-					'brotli'|'sabctools') (( ( $G_HW_ARCH < 3 && ! $piwheels ) || $G_HW_ARCH == 11 )) && aDEPS+=('g++');;
+					'brotli'|'sabctools'|'ujson') (( ( $G_HW_ARCH < 3 && ! $piwheels ) || $G_HW_ARCH == 11 )) && aDEPS+=('g++');;
 					'cffi') (( ( $G_HW_ARCH < 3 && ! $piwheels ) || $G_HW_ARCH == 11 )) && aDEPS+=('gcc' 'libffi-dev');;
 					'cryptography')
 						if (( ( $G_HW_ARCH == 1 && ! $piwheels ) || $G_HW_ARCH == 11 ))
@@ -2629,7 +2629,6 @@ sudo sysctl -p /etc/sysctl.d/dietpi-$1.conf"
 						(( ( $G_HW_ARCH < 3 && ! $piwheels ) || $G_HW_ARCH == 11 )) && aDEPS+=('make')
 						set -- "$@" cffi
 					;;
-					'ujson') (( ( $G_HW_ARCH < 3 && ( ! $piwheels || $python_version != 311 ) ) || $G_HW_ARCH == 11 )) && aDEPS+=('g++');;
 					*) G_DIETPI-NOTIFY 1 "Unknown argument \"$1\" for Python_Deps(). This should never happen unless you are developing a software implementation. Otherwise, please report this at https://github.com/MichaIng/DietPi/issues. Aborting ..."; exit 1;;
 				esac
 				shift
@@ -4672,7 +4671,7 @@ _EOF_
 			if [[ ! -f '/mnt/dietpi_userdata/ocis/ocis.yaml' ]]
 			then
 				# Replace password strings internally to avoid printing it to console
-				G_EXEC_PRE_FUNC(){ acommand[11]="$GLOBAL_PW"; }
+				G_EXEC_PRE_FUNC(){ acommand[13]="$GLOBAL_PW"; }
 				G_EXEC_POST_FUNC(){ sed --follow-symlinks -i "/^ *password/s/:.*/: ${GLOBAL_PW//?/X}/" "$fp_log"; cat "$fp_log"; }
 				G_EXEC setpriv --re{u,g}id='ocis' --clear-groups --reset-env -- /opt/ocis/ocis init --config-path /mnt/dietpi_userdata/ocis --insecure yes --ap "${GLOBAL_PW//?/X}"
 			fi
@@ -10674,9 +10673,9 @@ ExecStart=/mnt/dietpi_userdata/gitea/gitea web
 
 # Hardening
 ProtectSystem=full
-PrivateDevices=yes
-PrivateTmp=yes
-NoNewPrivileges=true
+PrivateDevices=1
+PrivateTmp=1
+NoNewPrivileges=1
 
 [Install]
 WantedBy=multi-user.target
@@ -10723,9 +10722,9 @@ ExecStart=/mnt/dietpi_userdata/forgejo/forgejo web
 
 # Hardening
 ProtectSystem=full
-PrivateDevices=yes
-PrivateTmp=yes
-NoNewPrivileges=true
+PrivateDevices=1
+PrivateTmp=1
+NoNewPrivileges=1
 
 [Install]
 WantedBy=multi-user.target
@@ -12036,8 +12035,8 @@ _EOF_
 			aDEPS=("postgresql-$version-pgvector")
 			local arch='amd64'
 			(( $G_HW_ARCH == 3 )) && arch='arm64'
-			local fallback_url="https://github.com/tensorchord/VectorChord/releases/download/1.1.1/postgresql-$version-vchord_1.1.1-1_$arch.deb"
-			Download_Install "$(curl -sSfL 'https://api.github.com/repos/tensorchord/VectorChord/releases/latest' | grep -Po "\"browser_download_url\": *\"\K[^\"]*-$version-vchord_[^\"\/]*_$arch\.deb(?=\")")"
+			local fallback_url="https://github.com/supervc-stack/VectorChord/releases/download/1.1.1/postgresql-$version-vchord_1.1.1-1_$arch.deb"
+			Download_Install "$(curl -sSfL 'https://api.github.com/repos/supervc-stack/VectorChord/releases/latest' | grep -Po "\"browser_download_url\": *\"\K[^\"]*-$version-vchord_[^\"\/]*_$arch\.deb(?=\")")"
 
 			# Download Immich source
 			version=$(curl -sSfL 'https://api.github.com/repos/immich-app/immich/releases/latest' | grep -Po '"tag_name": *"\K[^"]+')
@@ -15405,11 +15404,11 @@ _EOF_
 		# Download online script
 		[[ -f '/boot/Automation_Custom_Script.sh' ]] || G_EXEC_NOEXIT=1 G_EXEC curl -sSfL "$AUTOINSTALL_CUSTOMSCRIPTURL" -o /boot/Automation_Custom_Script.sh || return $?
 
-		G_DIETPI-NOTIFY 2 'Running custom script, please wait...'
+		G_DIETPI-NOTIFY 2 'Running /boot/Automation_Custom_Script.sh, please wait...'
 
 		[[ -x '/boot/Automation_Custom_Script.sh' ]] || G_EXEC_NOEXIT=1 G_EXEC chmod +x /boot/Automation_Custom_Script.sh
-		/boot/Automation_Custom_Script.sh 2>&1 | tee /var/lib/dietpi/logs/dietpi-automation_custom_script.log
-		G_DIETPI-NOTIFY $(( ! ! ${PIPESTATUS[0]} )) 'Custom script: /var/lib/dietpi/logs/dietpi-automation_custom_script.log'
+		/boot/Automation_Custom_Script.sh
+		G_DIETPI-NOTIFY -1 $? '/boot/Automation_Custom_Script.sh'
 	}
 
 	#/////////////////////////////////////////////////////////////////////////////////////
