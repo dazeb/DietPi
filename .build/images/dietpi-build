@@ -219,7 +219,7 @@ esac
 # Check for valid partition table type and set variables accordingly
 case $PTTYPE in
 	'msdos') [[ $HW_MODEL == 21 ]] && iname+='-BIOS';;
-	'gpt') [[ $HW_ARCH == 10 || $HW_MODEL == 20 ]] && efi_size=64 iname+='-UEFI';;
+	'gpt') [[ $HW_MODEL == 21 || $HW_MODEL == 20 ]] && efi_size=64 iname+='-UEFI';;
 	*) Error_Exit "Invalid partition table type \"$PTTYPE\" passed";;
 esac
 
