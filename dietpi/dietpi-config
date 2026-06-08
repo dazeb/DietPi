@@ -893,7 +893,7 @@ Re-enabling HDMI requires a reboot. If you need emergency HDMI output, edit the 
 		G_WHIP_MENU_ARRAY+=('Time sync mode' ": [$ntpd_mode_text]")
 
 		# RTC clock: Only show if an RTC device node exists
-		if [[ -f '/dev/rtc0' || -f '/dev/rtc' || -f '/dev/misc/rtc' ]]
+		if [[ -e '/dev/rtc0' || -e '/dev/rtc' || -e '/dev/misc/rtc' ]]
 		then
 			local rtc_text='Hardware'
 			command -v fake-hwclock > /dev/null && rtc_text='Emulated'
@@ -1013,8 +1013,8 @@ RTC hardware clock:
  - If active, this hardware clock will apply the correct system time during kernel boot stage.\n
 fake-hwclock:
  - If no hardware RTC is available, the "fake-hwclock" package provides a service that saves the current system time to a file hourly and on shutdown, and re-applies this stored time on early boot.
- - This means that the time is outdated if the system was off for a while, but without this implementation the system time would be 01/01/1970 until network time sync corrects it.
- - NB: fake-hwlock never turns back the block. So even if an RTC is available, it does not hurt to leave this option at "Emulated", aside of a tiny disk write every hour and a small additional package.\n
+ - This means that the time is outdated if the system was off for a while. But without this implementation, the system time would be 1970-01-01 or some build timestamp, until network time sync corrects it.
+ - NB: fake-hwlock never turns back the clock. So even if an RTC is available, it does not hurt to leave this option at "Emulated", aside of a tiny disk write every hour and a small additional package.\n
 Please choose whether your device has an active RTC or requires "fake-hwclock":' || return 0
 
 			if [[ $G_WHIP_RETURNED_VALUE == 'Emulated' ]]
