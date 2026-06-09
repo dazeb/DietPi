@@ -333,7 +333,7 @@ _EOF_
 		# x86_64 BIOS: Set GRUB install device: https://github.com/MichaIng/DietPi/issues/4542
 		if (( $G_HW_ARCH == 10 )) && dpkg-query -s grub-pc &> /dev/null
 		then
-			local root_drive=$(lsblk -npo PKNAME "$(findmnt -Ufvnro SOURCE -M /)")
+			local root_drive=$(lsblk -npo PKNAME "$(findmnt -Ufvnro SOURCE /)")
 			[[ $root_drive == '/dev/'* ]] && debconf-set-selections <<< "grub-pc grub-pc/install_devices multiselect $root_drive"
 		fi
 	}

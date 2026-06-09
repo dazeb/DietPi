@@ -42,7 +42,7 @@
 	rm -Rfv /etc/systemd/system/*.wants/dietpi-fs_partition_resize.service
 
 	echo '[ INFO ] Obtaining root filesystem device'
-	ROOT_DEV=$(findmnt -Ufvnro SOURCE -M /)
+	ROOT_DEV=$(findmnt -Ufvnro SOURCE /)
 
 	echo '[ INFO ] Detecting root partition and parent drive for supported naming schemes'
 	# - SCSI/SATA:   /dev/sd[a-z][1-9]
@@ -136,7 +136,7 @@
 	fi
 
 	echo '[ INFO ] Detecting root filesystem type'
-	ROOT_FSTYPE=$(findmnt -Ufnro FSTYPE -M /)
+	ROOT_FSTYPE=$(findmnt -Ufnro FSTYPE /)
 
 	# Maximise root filesystem if type is supported
 	case $ROOT_FSTYPE in
