@@ -751,7 +751,7 @@ _EOF_
 			# Download overlay
 			G_EXEC curl -sSfL 'https://raw.githubusercontent.com/waveshare/LCD-show/master/waveshare32b-overlay.dtb' -o /boot/firmware/overlays/waveshare32b.dtbo
 
-			#consoleblank=0 no effect
+			# Map LCD framebuffer to default console
 			G_EXEC sed --follow-symlinks -i 's/rootwait/rootwait fbcon=map:10 fbcon=font:ProFont6x11 logo.nologo/' /boot/firmware/cmdline.txt
 
 			G_CONFIG_INJECT 'dtparam=i2c_arm=' 'dtparam=i2c_arm=on' /boot/firmware/config.txt

@@ -3042,7 +3042,7 @@ unix_socket_directories = '/run/postgresql'" > "$i/00dietpi.conf"
 			G_EXEC systemctl start rsyslog
 
 			# Apply logging choice index
-			grep -q '[[:blank:]]/var/log[[:blank:]]' /etc/fstab || findmnt -t tmpfs -M /var/log > /dev/null || INDEX_LOGGING=-3
+			grep -q '[[:blank:]]/var/log[[:blank:]]' /etc/fstab || findmnt -t tmpfs /var/log > /dev/null || INDEX_LOGGING=-3
 		fi
 
 		if To_Install 7 # FFmpeg
@@ -14642,7 +14642,7 @@ _EOF_
 			# Update logging choice index
 			if [[ $INDEX_LOGGING == -3 ]]
 			then
-				grep -q '[[:blank:]]/var/log[[:blank:]]' /etc/fstab || findmnt -t tmpfs -M /var/log > /dev/null && INDEX_LOGGING=-1 || INDEX_LOGGING=0
+				grep -q '[[:blank:]]/var/log[[:blank:]]' /etc/fstab || findmnt -t tmpfs /var/log > /dev/null && INDEX_LOGGING=-1 || INDEX_LOGGING=0
 			fi
 		fi
 
