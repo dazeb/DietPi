@@ -106,7 +106,7 @@ aREPLACE[$software_id]='version='\''$release'\'
 
 # Single File PHP Gallery
 software_id=56
-aCHECK[$software_id]='curl -sSf '\''https://sye.dk/sfpg/?latest'\'' || { sleep 5; curl -sSf '\''https://sye.dk/sfpg/?latest'\''; }'
+aCHECK[$software_id]='curl -sSf '\''https://sye.dk/sfpg/?latest'\'
 aREGEX[$software_id]='file='\''[^'\'']*'\'
 aREPLACE[$software_id]='file='\''$release'\'
 
@@ -446,7 +446,7 @@ do
 	do
 		[[ $arch == 'dummy' ]] && arch=''
 		[[ $arch ]] && echo "Checking for architecture $arch ..."
-		release=$(eval "${aCHECK[i]}")
+		release=$(eval "${aCHECK[i]}") || { (( $i == 56 )) && continue 2; }
 		[[ $release ]] || Exit_Error "No release found${arch:+ for architecture $arch}"
 	done
 	[[ $arch ]] && release=${release/${arch}_/\$\{arch\}_} release=${release/$arch/\$arch}
