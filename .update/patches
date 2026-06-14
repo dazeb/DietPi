@@ -1870,8 +1870,8 @@ Patch_9_17()
 		local dir="../DietPi-Update/DietPi-${G_GITBRANCH//\//-}" # GitHub translates forward slashes into dashes
 		G_EXEC mv "$dir/.build/images/U-Boot/boot.cmd" /boot/boot.cmd
 		G_EXEC mv "$dir/.build/images/U-Boot/dietpiEnv.txt" /boot/dietpiEnv.txt
-		G_CONFIG_INJECT 'rootdev=' "rootdev=UUID=$(findmnt -Ufnro UUID -M /)" /boot/dietpiEnv.txt
-		G_CONFIG_INJECT 'rootfstype=' "rootfstype=$(findmnt -Ufnro FSTYPE -M /)" /boot/dietpiEnv.txt
+		G_CONFIG_INJECT 'rootdev=' "rootdev=UUID=$(findmnt -Ufnro UUID /)" /boot/dietpiEnv.txt
+		G_CONFIG_INJECT 'rootfstype=' "rootfstype=$(findmnt -Ufnro FSTYPE /)" /boot/dietpiEnv.txt
 		G_EXEC mkdir -p /etc/kernel/post{inst,rm}.d /etc/initramfs/post-update.d
 		G_EXEC mv "$dir/.build/images/U-Boot/dietpi-initramfs_cleanup" /etc/kernel/postinst.d/dietpi-initramfs_cleanup
 		G_EXEC ln -sf /etc/kernel/post{inst,rm}.d/dietpi-initramfs_cleanup
@@ -1948,8 +1948,8 @@ _EOF_
 		local dir="../DietPi-Update/DietPi-${G_GITBRANCH//\//-}" # GitHub translates forward slashes into dashes
 		G_EXEC mv "$dir/.build/images/U-Boot/boot.cmd" /boot/boot.cmd
 		G_EXEC mv "$dir/.build/images/U-Boot/dietpiEnv.txt" /boot/dietpiEnv.txt
-		G_CONFIG_INJECT 'rootdev=' "rootdev=UUID=$(findmnt -Ufnro UUID -M /)" /boot/dietpiEnv.txt
-		G_CONFIG_INJECT 'rootfstype=' "rootfstype=$(findmnt -Ufnro FSTYPE -M /)" /boot/dietpiEnv.txt
+		G_CONFIG_INJECT 'rootdev=' "rootdev=UUID=$(findmnt -Ufnro UUID /)" /boot/dietpiEnv.txt
+		G_CONFIG_INJECT 'rootfstype=' "rootfstype=$(findmnt -Ufnro FSTYPE /)" /boot/dietpiEnv.txt
 		G_EXEC mkdir -p /etc/kernel/post{inst,rm}.d /etc/initramfs/post-update.d
 		G_EXEC mv "$dir/.build/images/U-Boot/dietpi-initramfs_cleanup" /etc/kernel/postinst.d/dietpi-initramfs_cleanup
 		G_EXEC ln -sf /etc/kernel/post{inst,rm}.d/dietpi-initramfs_cleanup
@@ -2484,7 +2484,10 @@ _EOF_
 			done
 		done
 	fi
+}
 
+Patch_10_5()
+{
 	# Software updates, migrations and patches
 	if [[ -f '/boot/dietpi/.installed' ]]
 	then

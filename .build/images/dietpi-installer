@@ -60,7 +60,7 @@
 	mount -a
 
 	# Assure that /tmp is a tmpfs of at least 512 MiB
-	if findmnt -M /tmp > /dev/null
+	if findmnt /tmp > /dev/null
 	then
 		(( $(findmnt -Ufnrbo SIZE /tmp) < 512*1024**2 )) && mount -o 'remount,size=512M,noatime,lazytime,nodev,nosuid,mode=1777' /tmp
 	else
@@ -452,7 +452,6 @@ _EOF_
 				fi
 			;;
 			10) G_WHIP_DEFAULT_ITEM=21 G_WHIP_MENU_ARRAY=(
-				'20' ': Virtual machine'
 				'21' ': Native PC'
 			);;
 			11) G_WHIP_DEFAULT_ITEM=81 G_WHIP_MENU_ARRAY=(
@@ -463,6 +462,7 @@ _EOF_
 		esac
 		G_WHIP_MENU_ARRAY+=(
 			'' '●─ Other '
+			'20' ': Virtual machine'
 			'75' ': Container image'
 			'22' ': Generic device'
 		)
@@ -633,7 +633,7 @@ _EOF_
 		if (( $G_HW_MODEL < 10 ))
 		then
 			G_EXEC mv "$dir/.build/images/RPi/config.txt" /boot/firmware/
-			G_EXEC eval "echo 'root=PARTUUID=$(findmnt -Ufnro PARTUUID -M /) rootfstype=$(findmnt -Ufnro FSTYPE -M /) rootwait fsck.repair=yes net.ifnames=0 logo.nologo console=serial0,115200 console=tty1' > /boot/firmware/cmdline.txt"
+			G_EXEC eval "echo 'root=PARTUUID=$(findmnt -Ufnro PARTUUID /) rootfstype=$(findmnt -Ufnro FSTYPE /) rootwait fsck.repair=yes net.ifnames=0 logo.nologo console=serial0,115200 console=tty1' > /boot/firmware/cmdline.txt"
 			# Boot in 64-bit mode if this is a 64-bit image
 			[[ $userland_arch == 'arm64' ]] && G_CONFIG_INJECT 'arm_64bit=' 'arm_64bit=1' /boot/firmware/config.txt
 
@@ -650,8 +650,8 @@ _EOF_
 				G_EXEC mv "$dir/.build/images/OdroidXU4/boot.ini" /boot/boot.ini
 				G_EXEC mv "$dir/.build/images/U-Boot/99-dietpi-uboot" /etc/initramfs/post-update.d/99-dietpi-uboot
 			fi
-			G_EXEC sed --follow-symlinks -i "s/root=[^[:blank:]]*/root=UUID=$(findmnt -Ufnro UUID -M /)/" /boot/boot.ini
-			G_EXEC sed --follow-symlinks -i "s/rootfstype=[^[:blank:]]*/rootfstype=$(findmnt -Ufnro FSTYPE -M /)/" /boot/boot.ini
+			G_EXEC sed --follow-symlinks -i "s/root=[^[:blank:]]*/root=UUID=$(findmnt -Ufnro UUID /)/" /boot/boot.ini
+			G_EXEC sed --follow-symlinks -i "s/rootfstype=[^[:blank:]]*/rootfstype=$(findmnt -Ufnro FSTYPE /)/" /boot/boot.ini
 			G_EXEC mv "$dir/.build/images/U-Boot/dietpi-initramfs_cleanup" /etc/kernel/postinst.d/dietpi-initramfs_cleanup
 			G_EXEC ln -sf /etc/kernel/post{inst,rm}.d/dietpi-initramfs_cleanup
 
@@ -662,8 +662,8 @@ _EOF_
 			armbian_packages=1
 			G_EXEC mv "$dir/.build/images/U-Boot/boot.cmd" /boot/boot.cmd
 			G_EXEC mv "$dir/.build/images/U-Boot/dietpiEnv.txt" /boot/dietpiEnv.txt
-			G_CONFIG_INJECT 'rootdev=' "rootdev=UUID=$(findmnt -Ufnro UUID -M /)" /boot/dietpiEnv.txt
-			G_CONFIG_INJECT 'rootfstype=' "rootfstype=$(findmnt -Ufnro FSTYPE -M /)" /boot/dietpiEnv.txt
+			G_CONFIG_INJECT 'rootdev=' "rootdev=UUID=$(findmnt -Ufnro UUID /)" /boot/dietpiEnv.txt
+			G_CONFIG_INJECT 'rootfstype=' "rootfstype=$(findmnt -Ufnro FSTYPE /)" /boot/dietpiEnv.txt
 			G_EXEC mkdir -p /etc/initramfs/post-update.d /etc/kernel/post{inst,rm}.d
 			G_EXEC mv "$dir/.build/images/U-Boot/99-dietpi-uboot" /etc/initramfs/post-update.d/99-dietpi-uboot
 			G_EXEC mv "$dir/.build/images/U-Boot/dietpi-initramfs_cleanup" /etc/kernel/postinst.d/dietpi-initramfs_cleanup
@@ -847,7 +847,7 @@ setenv rootuuid "true"' /boot/boot.cmd
 		fi
 
 		# shellcheck disable=SC2016
-		[[ -f '/etc/initramfs/post-update.d/99-dietpi-uboot' && $(findmnt -t vfat -M /boot) ]] && G_EXEC sed --follow-symlinks -i 's|^ln -sfv "initrd|mv -v "/boot/initrd|' /etc/initramfs/post-update.d/99-dietpi-uboot # FAT does not support symlinks
+		[[ -f '/etc/initramfs/post-update.d/99-dietpi-uboot' && $(findmnt -t vfat /boot) ]] && G_EXEC sed --follow-symlinks -i 's|^ln -sfv "initrd|mv -v "/boot/initrd|' /etc/initramfs/post-update.d/99-dietpi-uboot # FAT does not support symlinks
 
 		G_EXEC mv "$dir/dietpi.txt" /boot/
 		G_EXEC mv "$dir/README.md" /boot/dietpi-README.md
@@ -970,6 +970,7 @@ _EOF_'
 			'locales'		# Support locales, used by dietpi-config > Language/Regional Options > Locale
 			'mawk'			# Minimal awk implementation
 			'nano'			# Simple text editor
+			'passwd'		# useradd/usermod/chpasswd/...
 			'parted'		# partprobe + drive partitioning, used by DietPi-Drive_Manager
 			'procps'		# "kill", "ps", "pgrep", "sysctl", used by several DietPi scripts
 			'psmisc'		# "killall", used by several DietPi scripts
@@ -982,7 +983,7 @@ _EOF_'
 		)
 
 		# Obtain rootfs device node
-		local G_ROOTFS_DEV=$(findmnt -Ufvnro SOURCE -M /)
+		local G_ROOTFS_DEV=$(findmnt -Ufvnro SOURCE /)
 
 		# Install mdadm if root filesystem is on a RAID
 		[[ $(lsblk -no TYPE "$G_ROOTFS_DEV") == 'raid'* ]] && aPACKAGES_REQUIRED_INSTALL+=('mdadm')
@@ -1152,43 +1153,43 @@ _EOF_
 						*) model='rockpi-4b';;
 					esac;;
 				73) model='rockpi-s' kernel='rockchip64';;
-				74) model='radxa-zero';;
+				74) model='radxa-zero' kernel='meson64';;
 				76) kernel='rockchip64'
 					case $HW_VARIANT in
 						2) model='nanopi-r5c';;
 						*) model='nanopi-r5s';;
 					esac;;
 				77) model='rock-3a' kernel='rockchip64';;
-				78) model='rock-5b' kernel='rk35xx' branch='vendor';;
-				79) kernel='rk35xx' branch='vendor'
+				78) model='rock-5b' kernel='rockchip64';;
+				79) kernel='rockchip64'
 					case $HW_VARIANT in
 						2) model='nanopi-r6c';;
 						3) model='nanopct6';;
 						*) model='nanopi-r6s';;
 					esac;;
-				80) model='orangepi5' kernel='rk35xx' branch='vendor';;
-				82) model='orangepi5-plus' kernel='rk35xx' branch='vendor';;
+				80) model='orangepi5' kernel='rockchip64';;
+				82) model='orangepi5-plus' kernel='rockchip64';;
 				83) model='orangepizero3' kernel='sunxi64';;
-				85) model='rock-5a' kernel='rk35xx' branch='vendor';;
+				85) model='rock-5a' kernel='rockchip64';;
 				86) model='tinkerboard-2' kernel='rockchip64';;
 				87) model='orangepi3b' kernel='rockchip64';;
 				88) model='orangepizero2w' kernel='sunxi64';;
 				89) model='orangepi3-lts' kernel='sunxi64';;
 				90) model='radxa-zero3' kernel='rockchip64';;
 				91) model='orangepi5-max' kernel='rk35xx' branch='vendor';; # mainline Linux dts does not support onboard WiFi, and brcmfmac probably does neither
-				92) model='nanopi-m6' kernel='rk35xx' branch='vendor';;
-				93) model='orangepi5pro' kernel='rk35xx' branch='vendor';;
+				92) model='nanopi-m6' kernel='rockchip64';;
+				93) model='orangepi5pro' kernel='rockchip64';;
 				94) model='orangepi5-ultra' kernel='rk35xx' branch='vendor';; # mainline Linux dts does not support onboard WiFi, and brcmfmac probably does neither
 				95) model='orangepicm5' kernel='rk35xx' branch='vendor';;
 				96) model='orangepi-4a' kernel='sunxi64' branch='edge';;
 				99) model='orangepi3' kernel='sunxi64';;
 				100) model='nanopi-r3s' kernel='rockchip64';;
 				101) model='nanopi-r3s-lts' kernel='rockchip64';;
-				102) model='nanopi-r76s' kernel='rk35xx' branch='vendor';; # mainline U-Boot does not support eMMC boot, and vendor U-Boot does not support eMMC boot with mainline Linux either. It looks like U-Boot would (needs to) load the device tree from the eMMC Linux hardcoded path /boot/dtb/rockchip/rk3576-nanopi-r75s.dtb, and that needs to be from vendor kernel. Weird ...
-				103) model='nanopi-m5' kernel='rk35xx' branch='vendor';; # mainline Linux does not support UFS and the upper USB port
+				102) model='nanopi-r76s' kernel='rockchip64';;
+				103) model='nanopi-m5' kernel='rockchip64';;
 				104) model='nanopi-zero2' kernel='rk35xx' branch='vendor';;
 				105) model='orangepi4-lts' kernel='rockchip64';;
-				106) model='orangepi5b' kernel='rk35xx' branch='vendor';;
+				106) model='orangepi5b' kernel='rockchip64';;
 				*) G_DIETPI-NOTIFY 1 "Unknown hardware ID \"$G_HW_MODEL\". Aborting ..."; exit 1;;
 			esac
 
@@ -1414,8 +1415,8 @@ _EOF_
 		elif (( $G_HW_MODEL == 81 ))
 		then
 			G_AGI linux-image-visionfive2 libubootenv-tool
-			G_EXEC sed --follow-symlinks -i "s/root=[^[:blank:]]*/root=PARTUUID=$(findmnt -Ufnro PARTUUID -M /)/" /boot/extlinux/extlinux.conf
-			G_EXEC sed --follow-symlinks -i "s/rootfstype=[^[:blank:]]*/rootfstype=$(findmnt -Ufnro FSTYPE -M /)/" /boot/extlinux/extlinux.conf
+			G_EXEC sed --follow-symlinks -i "s/root=[^[:blank:]]*/root=PARTUUID=$(findmnt -Ufnro PARTUUID /)/" /boot/extlinux/extlinux.conf
+			G_EXEC sed --follow-symlinks -i "s/rootfstype=[^[:blank:]]*/rootfstype=$(findmnt -Ufnro FSTYPE /)/" /boot/extlinux/extlinux.conf
 
 			# Force fsck repair
 			grep -q 'fsck.repair=' /boot/extlinux/extlinux.conf || G_EXEC sed --follow-symlinks -i 's/net.ifnames=0/fsck.repair=yes net.ifnames=0/' /boot/extlinux/extlinux.conf
@@ -1424,8 +1425,8 @@ _EOF_
 		elif (( $G_HW_MODEL == 84 ))
 		then
 			G_AGI linux-image-star64 libubootenv-tool
-			G_EXEC sed --follow-symlinks -i "s/root=[^[:blank:]]*/root=PARTUUID=$(findmnt -Ufnro PARTUUID -M /)/" /boot/extlinux/extlinux.conf
-			G_EXEC sed --follow-symlinks -i "s/rootfstype=[^[:blank:]]*/rootfstype=$(findmnt -Ufnro FSTYPE -M /)/" /boot/extlinux/extlinux.conf
+			G_EXEC sed --follow-symlinks -i "s/root=[^[:blank:]]*/root=PARTUUID=$(findmnt -Ufnro PARTUUID /)/" /boot/extlinux/extlinux.conf
+			G_EXEC sed --follow-symlinks -i "s/rootfstype=[^[:blank:]]*/rootfstype=$(findmnt -Ufnro FSTYPE /)/" /boot/extlinux/extlinux.conf
 
 			# Force fsck repair
 			grep -q 'fsck.repair=' /boot/extlinux/extlinux.conf || G_EXEC sed --follow-symlinks -i 's/net.ifnames=0/fsck.repair=yes net.ifnames=0/' /boot/extlinux/extlinux.conf
@@ -2036,7 +2037,7 @@ _EOF_'
 		then
 			/boot/dietpi/func/dietpi-set_hardware serialconsole enable ttyAML0
 
-		# Allwinner, StarFive, ROCK Pi S, NanoPi R76S/M5/Zero2 mainline
+		# Allwinner, StarFive, ROCK Pi S, RK3528/RK3576 mainline
 		elif [[ $kernel == 'sunxi' || $kernel == 'sunxi64' || $G_HW_MODEL =~ ^(73|81|84)$ || ( $G_HW_MODEL =~ ^(102|103|104)$ && $kernel == 'rockchip64' ) ]]
 		then
 			/boot/dietpi/func/dietpi-set_hardware serialconsole enable ttyS0
@@ -2297,8 +2298,7 @@ _EOF_
 			fi
 
 			# Update config
-			G_CONFIG_INJECT 'GRUB_CMDLINE_LINUX_DEFAULT=' 'GRUB_CMDLINE_LINUX_DEFAULT="consoleblank=0"' /etc/default/grub # NB: Removing "quiet" adds ~0.5s to boot time on my 6.5s - 7.5s boot time laptop.
-			G_CONFIG_INJECT 'GRUB_CMDLINE_LINUX=' 'GRUB_CMDLINE_LINUX="fsck.repair=yes net.ifnames=0"' /etc/default/grub
+			G_CONFIG_INJECT 'GRUB_CMDLINE_LINUX=' 'GRUB_CMDLINE_LINUX="fsck.repair=yes net.ifnames=0"' /etc/default/grub # NB: Adding "quiet" would reduce boot time by ~0.5s on my 6.5s - 7.5s boot time laptop.
 			G_CONFIG_INJECT 'GRUB_TIMEOUT=' 'GRUB_TIMEOUT=0' /etc/default/grub
 			G_EXEC_DESC='Regenerating GRUB config' G_EXEC_OUTPUT=1 G_EXEC grub-mkconfig -o /boot/grub/grub.cfg
 		fi

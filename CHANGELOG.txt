@@ -1,3 +1,21 @@
+v10.5
+(2026-06-13)
+
+Enhancements:
+- Raspberry Pi | KMS/DRM is now enabled by default whenever a GUI application or desktop environment is installed via dietpi-software, and it can be toggled with a new dedicated dietpi-config display options entry. After several libraries for the legacy GPU firmware driver have been removed, using it has almost only downsides. Any application which made use of its features, like OpenMAX, DispmanX, and MMAL, cannot work anymore on any supported Raspberry Pi repository version.
+- Raspberry Pi | The RPi Camera setting in dietpi-config has been updated to toggle the modern camera stack with libcamera API, rather than the legacy one. The recent Linux 6.18 update removed support for the legacy MMAL camera stack, which also never worked with Camera Module 3.
+- DietPi-Config | The display menu has been reworked: dietpi-display is now the standard tool to configure display resolution/mode and rotation, the device-specific resolution menus for Raspberry Pi and Odroids have been removed, along with other legacy and dysfunctional options, namely RPi headless mode, HDMI rotation (now included in dietpi-display), and PSU noise reduction. Like possible only on VMs before, it is now additionally possible on any system with GRUB bootloader, to configure the GRUB terminal and early boot console resolution, before the KMS video mode configured via dietpi-display applies.
+- DietPi-Software | RustDesk Client: It has been enabled for the ARMv7 architecture after the latest release fixed package compatibility with Debian time64 transitioned packages.
+
+Bug fixes:
+- NanoPi K2 | Resolved an issue where setting a static Ethernet MAC address via "ethaddr" variable in /boot/dietpiEnv.txt did not work, since U-Boot assigned a random MAC earlier, causing the variable to be immutable. However, the U-Boot methods to assign a static MAC via efuse and OTP fallback reads both fail, hence the MAC address remains random, varying across boots, until "ethaddr" is set in /boot/dietpiEnv.txt. If you want a static MAC address, we suggest to use the one assigned on any boot, to assure it is a valid one. On upgraded systems, U-Boot needs to be flashed, e.g. via dietpi-config Advanced Options, for the change to take effect. Many thanks to @vatprcyq for reporting this issue: https://github.com/MichaIng/DietPi/issues/8175
+- DietPi-Config | Resolved an issue where the RTC mode option within Advanced Options was never shown, because the presence of /dev/rtc* was checked incorrectly. Many thanks to @TheRaven500 for reporting this issue: https://github.com/MichaIng/DietPi/issues/7721#issuecomment-4649733270
+- DietPi-Software | ownCloud Infinite Scale: Resolved a v10.4 regression where on fresh installs, login via intended password failed, since the command argument was falsely added. Many thanks to @tonosama for reporting this issue, and @JappeHallunken for fixing it: https://dietpi.com/forum/t/25235
+
+As always, many smaller code performance and stability improvements, visual and spelling fixes have been done, too much to list all of them here. Check out all code changes of this release on GitHub: https://github.com/MichaIng/DietPi/pull/8173
+
+-----------------------------------------------------------------------------------------------------------
+
 v10.4
 (2026-05-16)
 

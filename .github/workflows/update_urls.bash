@@ -106,7 +106,7 @@ aREPLACE[$software_id]='version='\''$release'\'
 
 # Single File PHP Gallery
 software_id=56
-aCHECK[$software_id]='curl -sSf '\''https://sye.dk/sfpg/?latest'\'' || { sleep 5; curl -sSf '\''https://sye.dk/sfpg/?latest'\''; }'
+aCHECK[$software_id]='curl -sSf '\''https://sye.dk/sfpg/?latest'\'
 aREGEX[$software_id]='file='\''[^'\'']*'\'
 aREPLACE[$software_id]='file='\''$release'\'
 
@@ -378,11 +378,11 @@ aREPLACE[$software_id]='version='\''$release'\'
 
 # VectorChord (for Immich)
 software_id=215000
-aURL[$software_id]='https://api.github.com/repos/tensorchord/VectorChord/releases/latest'
+aURL[$software_id]='https://api.github.com/repos/supervc-stack/VectorChord/releases/latest'
 aCHECK[$software_id]='echo "$response" | grep -Po "\"browser_download_url\": *\"\K[^\"]*-15-vchord_[^\"\/]*_$arch\.deb(?=\")"'
 aARCH[$software_id]='arm64 amd64'
 aARCH_CHECK[$software_id]='riscv64'
-aREGEX[$software_id]='https://github.com/tensorchord/VectorChord/releases/download/.*/postgresql-.*-vchord_.*_$arch.deb'
+aREGEX[$software_id]='https://github.com/supervc-stack/VectorChord/releases/download/.*/postgresql-.*-vchord_.*_$arch.deb'
 aREPLACE[$software_id]='${release/-15-vchord_/-\$version-vchord_}'
 
 # extism-js (for Immich corePlugin build)
@@ -446,7 +446,7 @@ do
 	do
 		[[ $arch == 'dummy' ]] && arch=''
 		[[ $arch ]] && echo "Checking for architecture $arch ..."
-		release=$(eval "${aCHECK[i]}")
+		release=$(eval "${aCHECK[i]}") || { (( $i == 56 )) && continue 2; }
 		[[ $release ]] || Exit_Error "No release found${arch:+ for architecture $arch}"
 	done
 	[[ $arch ]] && release=${release/${arch}_/\$\{arch\}_} release=${release/$arch/\$arch}
