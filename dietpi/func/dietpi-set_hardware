@@ -1146,17 +1146,10 @@ _EOF_
 	#/////////////////////////////////////////////////////////////////////////////////////
 	Bluetooth_Main()
 	{
-		local aBLUETOOTH_MODULES=(
-			'bluetooth'
-			'bnep'
-			'btbcm' # RPi3 Broadcom onboard
-			'rfcomm' # BPi Pro/M2+ and others
-			'hidp' # BPi Pro/M2+ and others
-		)
-
+		# SBC-specific Bluetooth kernel modules which need to be blacklisted, to not load automatically during boot
+		local aBLUETOOTH_MODULES=()
 		case $G_HW_MODEL in
-			[0-9]) (( $G_HW_ONBOARD_WIFI )) && aBLUETOOTH_MODULES+=('hci_uart');; # RPi. This kernel module is used by other SBCs, but e.g. on ROCK 4 SE it is needed as well for WiFi: https://github.com/MichaIng/DietPi/issues/6943
-			102|103) aBLUETOOTH_MODULES+=('hci_uart');; # NanoPi R76S/M5 official M.2 WiFi card
+			102|103) aBLUETOOTH_MODULES+=('hci_uart');; # NanoPi R76S/M5 official M.2 WiFi card. This kernel module is used by other SBCs, but e.g. on ROCK 4 SE it is needed as well for WiFi: https://github.com/MichaIng/DietPi/issues/6943. On RPi, it is not needed to blacklist it, since it is not loaded with dtoverlay=disable-bt
 			95) aBLUETOOTH_MODULES+=('btsdio');; # Orange Pi CM5 onboard WiFi
 			83|88|89|99|105) aBLUETOOTH_MODULES+=('sprdbt_tty');; # Orange Pi Zero 3/Zero 2W/3 LTS/3/4 LTS
 			87) [[ $G_HW_REVISION == '1.1' ]] && aBLUETOOTH_MODULES+=('sprdbt_tty');; # Orange Pi 3B v1.1
@@ -1172,11 +1165,6 @@ _EOF_
 				systemctl -q is-enabled hciuart 2> /dev/null && G_EXEC systemctl disable hciuart
 				# Disable onboard Bluetooth via device tree overlay
 				G_CONFIG_INJECT 'dtoverlay=disable-bt' 'dtoverlay=disable-bt' /boot/firmware/config.txt
-
-			# Broadcom-based models that need brcm_patchram_plus
-			elif [[ $G_HW_MODEL == 6[12] ]] && systemctl list-unit-files 'brcm_patchram_plus.service' > /dev/null
-			then
-				systemctl -q is-enabled brcm_patchram_plus 2> /dev/null || systemctl -q is-active brcm_patchram_plus && G_EXEC systemctl disable --now brcm_patchram_plus
 			fi
 
 			systemctl -q is-enabled bluetooth 2> /dev/null || systemctl -q is-active bluetooth && G_EXEC systemctl disable --now bluetooth
@@ -1184,13 +1172,12 @@ _EOF_
 			# Remove explicit Bluetooth module loads
 			[[ -f '/etc/modules-load.d/dietpi-enable_bluetooth.conf' ]] && G_EXEC rm /etc/modules-load.d/dietpi-enable_bluetooth.conf
 
-			# Unload and blacklist kernel modules, bluetooth last
-			G_EXEC mkdir -p /etc/modprobe.d
-			> /etc/modprobe.d/dietpi-disable_bluetooth.conf
-			for ((i=$(( ${#aBLUETOOTH_MODULES[@]} - 1 )); i>=0; i--))
+			# Unload and blacklist kernel modules
+			[[ -f '/etc/modprobe.d/dietpi-disable_bluetooth.conf' ]] && G_EXEC rm /etc/modprobe.d/dietpi-disable_bluetooth.conf
+			for i in "${aBLUETOOTH_MODULES[@]}"
 			do
-				modprobe -rf "${aBLUETOOTH_MODULES[$i]}" 2> /dev/null
-				echo "blacklist ${aBLUETOOTH_MODULES[$i]}" >> /etc/modprobe.d/dietpi-disable_bluetooth.conf
+				G_EXEC eval "echo 'blacklist $i' >> /etc/modprobe.d/dietpi-disable_bluetooth.conf"
+				G_EXEC_NOFAIL=1 G_EXEC modprobe -rf "$i"
 			done
 
 			# Purge packages
@@ -1201,9 +1188,6 @@ _EOF_
 
 		elif [[ $INPUT_DEVICE_VALUE == 'enable' ]]
 		then
-			# Remove kernel module blacklist
-			[[ -f '/etc/modprobe.d/dietpi-disable_bluetooth.conf' ]] && G_EXEC rm /etc/modprobe.d/dietpi-disable_bluetooth.conf
-
 			# RPi
 			if (( $G_HW_MODEL < 10 )) && (( $G_HW_ONBOARD_WIFI ))
 			then
@@ -1227,17 +1211,15 @@ _EOF_
 				G_AG_CHECK_INSTALL_PREREQ bluez "${firmware[@]}"
 			fi
 
-			# Load kernel modules, bluetooth first
+			# Remove blacklist and load kernel modules
+			[[ -f '/etc/modprobe.d/dietpi-disable_bluetooth.conf' ]] && G_EXEC rm /etc/modprobe.d/dietpi-disable_bluetooth.conf
 			for i in "${aBLUETOOTH_MODULES[@]}"
 			do
-				modprobe "$i" 2> /dev/null
+				G_EXEC_NOFAIL=1 G_EXEC modprobe "$i"
 			done
 
 			# Failsafe: Unblock all Bluetooth adapters if rfkill is installed
 			command -v rfkill > /dev/null && rfkill unblock bluetooth
-
-			# Broadcom-based models that need brcm_patchram_plus
-			[[ $G_HW_MODEL == 6[12] ]] && systemctl list-unit-files 'brcm_patchram_plus.service' > /dev/null && G_EXEC systemctl enable --now brcm_patchram_plus
 
 			G_EXEC systemctl enable --now bluetooth
 
